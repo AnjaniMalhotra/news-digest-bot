@@ -1,8 +1,0 @@
-# This module has no shared top-level Python code — everything lives inside
-# the two service folders, each with its own requirements.txt (installed
-# inside their Docker image / Cloud Function deploy, not on your host):
-#   news_summarizer/requirements.txt
-#   news_fetcher/requirements.txt
-#
-# The only thing you need on your host machine is the gcloud CLI and Docker
-# Desktop — nothing from this file needs a local `pip install`.

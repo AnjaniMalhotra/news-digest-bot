@@ -1,4 +1,0 @@
-functions-framework
-feedparser
-requests
-google-auth
