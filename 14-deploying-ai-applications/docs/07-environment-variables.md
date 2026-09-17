@@ -2,7 +2,7 @@
 
 ## What Is It? (Plain English)
 
-Environment variables are non-sensitive configuration — values that change how a service behaves without needing to touch code or rebuild anything. `TELEGRAM_CHAT_ID`, `RSS_FEED_URL`, and the summary's tone all live here.
+Environment variables are non-sensitive configuration — values that change how a service behaves without needing to touch code or rebuild anything. `TELEGRAM_CHAT_ID` and `RSS_FEED_URL` both live here.
 
 ## Why It Matters for AI Engineers
 
@@ -41,13 +41,16 @@ gcloud functions deploy %FETCHER_FUNCTION_NAME% ^
   --update-env-vars=RSS_FEED_URL=%NEW_RSS_FEED_URL%
 ```
 
-No `docker build`, no `docker push`, no new image — just new configuration, live within seconds.
+For the Cloud Run service: no `docker build`, no `docker push`, no new image — the exact same image reference stays deployed, just with new configuration, live within seconds.
+
+**This doesn't hold for the Cloud Function.** `gcloud functions deploy` (source-based) re-triggers Cloud Build on *every* deploy, including an env-var-only change — it produces a new image digest each time, even though no code changed. The env var change still takes effect with no code edits needed, which is this topic's real point; just don't expect "zero build" for the Cloud Functions half specifically.
 
 ## Common Pitfalls
 
 - Putting something sensitive here "because it's easier than Secret Manager" — revisit topic 5's reasoning; ease isn't the deciding factor, sensitivity is.
 - Forgetting `--update-env-vars` only *adds or changes* variables — use `--remove-env-vars` to actually delete one, or `--set-env-vars` to replace the entire set at once.
 - Hardcoding a value in `main.py` that should have been an env var from the start — anything you'd want to change without a redeploy belongs here.
+- Assuming "no rebuild" applies equally to both services — it's genuinely true for `gcloud run services update`, not for `gcloud functions deploy` (see above).
 
 ## Quick Recap
 

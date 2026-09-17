@@ -15,9 +15,16 @@ import requests
 
 RSS_FEED_URL = os.environ.get(
     "RSS_FEED_URL",
-    "https://news.google.com/rss/search?q=artificial+intelligence",
+    "https://techcrunch.com/tag/artificial-intelligence/feed/",
 )
 SUMMARIZER_URL = os.environ["SUMMARIZER_URL"]
+
+REQUEST_HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+    )
+}
 
 
 def get_id_token(audience: str) -> str:
@@ -28,7 +35,7 @@ def get_id_token(audience: str) -> str:
 
 @functions_framework.http
 def fetch_and_forward(request):
-    feed = feedparser.parse(RSS_FEED_URL)
+    feed = feedparser.parse(RSS_FEED_URL, request_headers=REQUEST_HEADERS)
     headlines = [entry.title for entry in feed.entries[:10]]
 
     if not headlines:

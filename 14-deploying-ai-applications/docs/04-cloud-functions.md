@@ -29,7 +29,7 @@ flowchart LR
 
 ## Step-by-Step
 
-**1. Look at the code** (`code/14-deploying-ai-applications/news_fetcher/main.py`) — it fetches headlines, then calls `google.oauth2.id_token.fetch_id_token()` to get a token scoped specifically to the summarizer's URL before calling it.
+**1. Look at the code** (`news_fetcher/main.py`) — it fetches headlines, then calls `google.oauth2.id_token.fetch_id_token()` to get a token scoped specifically to the summarizer's URL before calling it.
 
 **2. Deploy:**
 ```bat
@@ -61,6 +61,7 @@ You'll see a `403 Forbidden` — not from your own call (that part succeeds), bu
 - Confusing this 403 with a code bug — the code is correct; the *permission* is what's missing, and permissions are topic 6's job.
 - Forgetting `SUMMARIZER_URL` has to be the real URL from topic 3's deploy — copy it exactly, no trailing slash mismatch.
 - Deploying without `--gen2` — Gen 1 functions have real limitations (shorter timeouts, less control) that Gen 2 removes.
+- Using Google News's `/rss/search` URL as your feed — Google blocks that specific endpoint's traffic from Google Cloud's own egress IPs with a 503 bot-detection page. It works fine from your laptop and fails only once deployed, which makes it a confusing one to debug. Use a different public RSS feed (any works — this module defaults to a TechCrunch tag feed).
 
 ## Quick Recap
 

@@ -12,8 +12,13 @@ echo.
 echo == updating news-fetcher's RSS_FEED_URL live ==
 gcloud functions deploy %FETCHER_FUNCTION_NAME% ^
   --gen2 --region=%REGION% ^
-  --update-env-vars=RSS_FEED_URL=https://news.google.com/rss/search?q=cloud+computing
+  --update-env-vars=RSS_FEED_URL=https://techcrunch.com/tag/cloud-computing/feed/
 
 echo.
-echo Notice: no "docker build", no "docker push", no new image anywhere
-echo above - just new configuration, live within seconds.
+echo Notice: the Cloud Run update above needed no "docker build", no
+echo "docker push", no new image - just new configuration, live within
+echo seconds. The Cloud Function deploy above this line is DIFFERENT: gcloud
+echo functions deploy rebuilds via Cloud Build every time, even for an
+echo env-var-only change like this one - the env var still takes effect
+echo with no code change, it just isn't a zero-build operation the way the
+echo Cloud Run update is.

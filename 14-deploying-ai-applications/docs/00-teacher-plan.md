@@ -8,8 +8,8 @@
 - [ ] Docker Desktop installed and running
 - [ ] A Telegram bot created via @BotFather, token in hand, plus your personal chat ID
 - [ ] `.env` filled in
-- [ ] `00_setup_vars.bat` and `00a_create_service_accounts.bat` already run once
-- [ ] Have `99_cleanup.bat` ready — not for cost reasons this time (everything's free-tier), just good hygiene to demonstrate
+- [ ] `bat-files/00_setup_vars.bat` and `bat-files/00a_create_service_accounts.bat` already run once
+- [ ] Have `bat-files/99_cleanup.bat` ready — not for cost reasons this time (everything's free-tier), just good hygiene to demonstrate
 
 ## Suggested pacing (240 min)
 
@@ -60,8 +60,8 @@ Keep the syllabus order — it happens to trace the natural build order of any c
 - Common confusion: students want to grant broader roles "to stop the errors faster." Reinforce least privilege explicitly — each grant maps to exactly one thing that service needs to do, nothing more.
 
 ### 7. Environment Variables
-**Land this one idea:** "Config you'd want to change without touching code — chat ID, feed URL, tone — belongs here, not hardcoded and not in Secret Manager."
-- Demo: `gcloud run services update ... --update-env-vars=...` to change something (e.g., the summary's tone) live, without rebuilding or redeploying the container image.
+**Land this one idea:** "Config you'd want to change without touching code — chat ID, feed URL — belongs here, not hardcoded and not in Secret Manager."
+- Demo: `gcloud run services update ... --update-env-vars=...` to change the summarizer's `TELEGRAM_CHAT_ID` live, without rebuilding or redeploying the container image. Note for the Cloud Functions side specifically: `gcloud functions deploy --update-env-vars` *does* re-trigger a build (new image digest) even for an env-var-only change — only the Cloud Run update is genuinely build-free. Worth calling out explicitly so it doesn't read as a contradiction.
 - Common confusion: "why isn't the Telegram token an env var too, if this is so easy?" Good question to ask the class/viewers directly — the answer is exactly topic 5's lesson (env vars aren't access-controlled or versioned the way secrets are).
 
 ## Wrap-up

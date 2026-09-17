@@ -3,7 +3,7 @@
 **Duration:** 4 hrs
 **Goal:** Every module so far has run on your own machine. This module is where that changes — you'll take a real, working AI pipeline and put it on the internet, running on Google's infrastructure, callable from anywhere, on a schedule or on demand.
 
-> **This module's story continues directly into [Module 15 – Event-Driven AI Applications](../15-event-driven-ai-applications/00-module-overview.md).** The Daily News Digest Bot built here is HTTP-triggered only, on purpose — Module 15 is where it learns to wake itself up automatically (Pub/Sub, Eventarc, Cloud Scheduler, Cloud Tasks, API Gateway).
+> **This module's story continues directly into Module 15 – Event-Driven AI Applications** (branch `2` of this repo). The Daily News Digest Bot built here is HTTP-triggered only, on purpose — Module 15 is where it learns to wake itself up automatically (Pub/Sub, Eventarc, Cloud Scheduler, Cloud Tasks, API Gateway).
 
 ## What we're building: a Daily News Digest Bot
 
@@ -35,7 +35,7 @@ flowchart LR
 | 4 | [Cloud Functions](04-cloud-functions.md) | Deploy `news-fetcher`, calling the Cloud Run service |
 | 5 | [Secret Manager](05-secret-manager.md) | Store the Telegram bot token securely |
 | 6 | [IAM](06-iam.md) | Grant each service exactly the access it needs — and watch the pipeline finally work end to end |
-| 7 | [Environment Variables](07-environment-variables.md) | Change behavior (chat ID, RSS feed, tone) without rebuilding anything |
+| 7 | [Environment Variables](07-environment-variables.md) | Change behavior (chat ID, RSS feed) without rebuilding anything |
 
 ## A deliberate teaching choice: things will fail on purpose, in order
 
@@ -57,7 +57,7 @@ This is the first deployment-heavy module in the course, and the good news is it
 - Modules 2 and 3 complete
 - Docker Desktop installed and running
 - A free Telegram bot token (created via [@BotFather](https://t.me/BotFather) — covered step by step in topic 5) and your personal Telegram chat ID
-- `.env` filled in (see `code/14-deploying-ai-applications/.env.example`)
+- `.env` filled in (see `.env.example` at this module's root)
 
 ## What you'll be able to do after this module
 

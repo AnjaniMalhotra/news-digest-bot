@@ -19,7 +19,7 @@ LOCATION = os.environ.get("LOCATION", "us-central1")
 TELEGRAM_CHAT_ID = os.environ["TELEGRAM_CHAT_ID"]
 SECRET_NAME = os.environ["SECRET_NAME"]
 
-MODEL_FLASH = "gemini-2.5-flash"  # verify still current/GA - see code/03-vertex-ai-gemini/docs/02-gemini-models.md
+MODEL_FLASH = "gemini-2.5-flash"  # verify still current/GA against Vertex AI's model docs
 
 genai_client = genai.Client(vertexai=True, project=PROJECT_ID, location=LOCATION)
 

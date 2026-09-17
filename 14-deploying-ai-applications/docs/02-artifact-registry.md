@@ -61,6 +61,7 @@ gcloud artifacts docker images list %REGION%-docker.pkg.dev/%PROJECT_ID%/%REPO_N
 - Forgetting `gcloud auth configure-docker` — `docker push` will fail with an authentication error.
 - Reusing the same tag (`:v1`) for every new build — makes it hard to tell which version is actually deployed; increment it (`:v2`, `:v3`) as you iterate.
 - Mismatching the region in the image path versus where the repository was actually created — they must match exactly.
+- Building on Apple Silicon (M-series Mac) — a plain `docker build` there produces an `arm64` image, but Cloud Run requires `linux/amd64`. It pushes fine and only fails at deploy time with a confusing "exec format error." Fix: `docker buildx build --platform=linux/amd64 -t <image> --push .` (requires the `docker-buildx` plugin).
 
 ## Quick Recap
 

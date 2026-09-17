@@ -21,7 +21,10 @@ REM DUMMY VALUES - replace with your real Telegram bot details (see topic 5)
 set TELEGRAM_BOT_TOKEN=your-telegram-bot-token-here
 set TELEGRAM_CHAT_ID=your-telegram-chat-id-here
 
-set RSS_FEED_URL=https://news.google.com/rss/search?q=artificial+intelligence
+REM NOT Google News's /rss/search endpoint - confirmed it 503s with a bot-
+REM detection page when called from any Google Cloud-hosted caller (works
+REM fine from a residential/laptop IP, fails from Cloud Functions/Cloud Run).
+set RSS_FEED_URL=https://techcrunch.com/tag/artificial-intelligence/feed/
 
 REM Filled in AFTER topic 3's deploy - paste the printed Cloud Run service URL here
 set SUMMARIZER_URL=https://REPLACE-ME-AFTER-TOPIC-3.run.app

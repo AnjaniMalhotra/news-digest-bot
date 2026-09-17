@@ -15,6 +15,7 @@ echo Press Ctrl+C to stop once you're done testing.
 echo.
 docker run --rm -p 8080:8080 ^
   --env-file ..\.env ^
+  -e PORT=8080 ^
   -e GOOGLE_APPLICATION_CREDENTIALS=/tmp/keys/adc.json ^
   -v "%APPDATA%\gcloud\application_default_credentials.json:/tmp/keys/adc.json:ro" ^
   news-summarizer-local
