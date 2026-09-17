@@ -1,7 +1,0 @@
-google-genai
-google-cloud-firestore
-cloud-sql-python-connector[pg8000]
-sqlalchemy
-redis
-numpy
-python-dotenv

@@ -1,3 +1,0 @@
-# This module has no shared top-level Python code — the actual service
-# lives in digest_worker_observable/requirements.txt (installed inside its
-# Cloud Run build). Nothing here needs a local `pip install`.
