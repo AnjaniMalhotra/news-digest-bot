@@ -3,8 +3,8 @@
 This is the exact process used to take Module 13 (Storage for AI Applications)
 from "a set of notebooks with placeholder instructions" to "actually
 provisioned and tested against real GCP infrastructure, ready to hand to
-someone else." Follow the same steps for each of `branch 1` (Module 14),
-`branch 2` (Module 15), and `branch 3` (Module 16) in this repo.
+someone else." Follow the same steps for each of the `14-deploying-ai-applications`,
+`15-event-driven-ai-applications`, and `16-monitoring-observability` branches in this repo.
 
 GCP project used for Module 13 (reuse unless told otherwise):
 `gcp-fde-project` (project number `1039893753206`).
