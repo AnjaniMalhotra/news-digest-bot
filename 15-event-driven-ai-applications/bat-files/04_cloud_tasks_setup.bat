@@ -20,6 +20,16 @@ gcloud run services add-iam-policy-binding digest-worker-http ^
   --member="serviceAccount:%TASKS_SA_EMAIL%" ^
   --role="roles/run.invoker"
 
+echo == letting Cloud Tasks itself mint OIDC tokens AS the dispatcher SA ==
+echo (without this, run.invoker above is not enough - every dispatch fails
+echo  with "IAM principal lacks run.routes.invoke permission" because Cloud
+echo  Tasks was never able to actually create a valid token as %TASKS_SA_NAME%
+echo  in the first place, so Cloud Run sees an unauthenticated request)
+for /f %%i in ('gcloud projects describe %PROJECT_ID% --format="value(projectNumber)"') do set PROJECT_NUMBER=%%i
+gcloud iam service-accounts add-iam-policy-binding %TASKS_SA_EMAIL% ^
+  --member="serviceAccount:service-%PROJECT_NUMBER%@gcp-sa-cloudtasks.iam.gserviceaccount.com" ^
+  --role="roles/iam.serviceAccountTokenCreator"
+
 echo.
 echo == getting the function's URL for the Python script below ==
 gcloud functions describe digest-worker-http --region=%REGION% --gen2 --format="value(serviceConfig.uri)"

@@ -7,7 +7,7 @@
 
 Module 14 built the **Daily News Digest Bot** and deliberately left one thing unfinished: *"Cloud Scheduler and event-driven triggers are Module 15's actual subject — wiring that up here would be teaching ahead of that module."* This is that module.
 
-The code here is **rebuilt fresh** (no imports from `code/14-deploying-ai-applications/`, per the course's isolation rule) as one small worker — **`digest-worker`** — that fetches a news feed, summarizes it with Gemini, and sends it to Telegram. Same job as Module 14's `news-summarizer`, simplified into a single Cloud Function since this module's actual focus is *what triggers it*, not re-teaching Docker/Cloud Run.
+The code here is **rebuilt fresh** (no imports from the Module 14 branch, per the course's isolation rule) as one small worker — **`digest-worker`** — that fetches a news feed, summarizes it with Gemini, and sends it to Telegram. Same job as Module 14's `news-summarizer`, simplified into a single Cloud Function since this module's actual focus is *what triggers it*, not re-teaching Docker/Cloud Run.
 
 ```mermaid
 flowchart TD
@@ -47,7 +47,7 @@ Confirmed against Google's current pricing: Pub/Sub (10 GiB/month free), Cloud S
 
 - Module 14 complete (the concepts — Cloud Functions, IAM, Secret Manager, environment variables — are assumed, not re-taught)
 - A Telegram bot token and chat ID (same one from Module 14, or a fresh one — either works)
-- `.env` filled in (see `code/15-event-driven-ai-applications/.env.example`)
+- `.env` filled in (see `.env.example` at this module's root)
 
 ## What you'll be able to do after this module
 

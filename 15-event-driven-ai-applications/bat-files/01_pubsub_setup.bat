@@ -13,9 +13,17 @@ gcloud functions deploy digest-worker-pubsub ^
   --service-account=%WORKER_SA_EMAIL% ^
   --set-env-vars=PROJECT_ID=%PROJECT_ID%,LOCATION=%LOCATION%,TELEGRAM_CHAT_ID=%TELEGRAM_CHAT_ID%,SECRET_NAME=%SECRET_NAME%
 
+echo == letting the auto-created Eventarc/Pub/Sub push subscription invoke this function ==
+echo (it authenticates AS %WORKER_SA_NAME% itself - without this grant, every
+echo  push silently fails with "IAM principal lacks run.routes.invoke permission")
+gcloud run services add-iam-policy-binding digest-worker-pubsub ^
+  --region=%REGION% ^
+  --member="serviceAccount:%WORKER_SA_EMAIL%" ^
+  --role="roles/run.invoker"
+
 echo.
 echo == publishing a test message ==
-gcloud pubsub topics publish %TOPIC_NAME% --message="{\"feed_url\": \"https://news.google.com/rss/search?q=artificial+intelligence\"}"
+gcloud pubsub topics publish %TOPIC_NAME% --message="{\"feed_url\": \"https://techcrunch.com/tag/artificial-intelligence/feed/\"}"
 
 echo.
 echo Check your Telegram in a few seconds. Also check logs if nothing arrives:

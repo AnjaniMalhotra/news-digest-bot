@@ -18,7 +18,7 @@ paths:
       summary: Trigger a news digest run
       operationId: triggerDigest
       x-google-backend:
-        address: WORKER_HTTP_URL_HERE
+        address: https://digest-worker-http-mewtpyvzkq-uc.a.run.app
       security:
         - api_key: []
       responses:

@@ -25,8 +25,11 @@ LOCATION = os.environ.get("LOCATION", "us-central1")
 TELEGRAM_CHAT_ID = os.environ["TELEGRAM_CHAT_ID"]
 SECRET_NAME = os.environ["SECRET_NAME"]
 
-MODEL_FLASH = "gemini-2.5-flash"  # verify still current/GA - see code/03-vertex-ai-gemini/docs/02-gemini-models.md
-DEFAULT_FEED_URL = "https://news.google.com/rss/search?q=artificial+intelligence"
+MODEL_FLASH = "gemini-2.5-flash"  # verify still current/GA against Vertex AI's model docs
+# NOT a Google News /rss/search URL - Google blocks that endpoint's traffic
+# from Google Cloud's own egress IPs with a 503 bot-detection page (found
+# and confirmed in Module 14; same underlying GCP-hosted-caller issue here).
+DEFAULT_FEED_URL = "https://techcrunch.com/tag/artificial-intelligence/feed/"
 
 genai_client = genai.Client(vertexai=True, project=PROJECT_ID, location=LOCATION)
 

@@ -20,6 +20,22 @@ gcloud api-gateway gateways create %GATEWAY_ID% ^
   --api-config=%API_CONFIG_ID% ^
   --location=%REGION%
 
+echo == enabling the API's own auto-created managed service ==
+echo (without this, every call fails with "digest-api has not been used in
+echo  project ... before or it is disabled" even though the gateway itself
+echo  deployed successfully)
+for /f %%i in ('gcloud api-gateway apis describe %API_ID% --format="value(managedService)"') do set MANAGED_SERVICE=%%i
+gcloud services enable %MANAGED_SERVICE%
+
+echo == letting the backend-auth service account actually invoke the function ==
+echo (--backend-auth-service-account above only DECLARES which identity the
+echo  gateway signs requests as - that identity still needs run.invoker on
+echo  digest-worker-http itself, the same lesson as every other topic here)
+gcloud run services add-iam-policy-binding digest-worker-http ^
+  --region=%REGION% ^
+  --member="serviceAccount:%WORKER_SA_EMAIL%" ^
+  --role="roles/run.invoker"
+
 echo.
 echo == creating an API key ==
 gcloud services api-keys create --display-name="Digest API Key"

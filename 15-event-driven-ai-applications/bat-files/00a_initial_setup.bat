@@ -20,6 +20,13 @@ gcloud secrets add-iam-policy-binding %SECRET_NAME% ^
   --member="serviceAccount:%WORKER_SA_EMAIL%" ^
   --role="roles/secretmanager.secretAccessor"
 
+echo == granting the worker baseline Vertex AI access (needed just to call Gemini) ==
+echo (Module 14 found this is required and missing from the original script -
+echo  applying the fix upfront here instead of rediscovering it per topic.)
+gcloud projects add-iam-policy-binding %PROJECT_ID% ^
+  --member="serviceAccount:%WORKER_SA_EMAIL%" ^
+  --role="roles/aiplatform.user"
+
 echo.
 echo Setup complete. Same least-privilege pattern as Module 14 - each
 echo service account only has exactly what it needs so far.

@@ -29,12 +29,27 @@ flowchart LR
 
 ## Step-by-Step
 
-**1. Create the bucket:**
+**1. Create the bucket** (bucket names are globally unique across all of GCP — if this one's taken, pick another):
 ```bat
 gcloud storage buckets create gs://%FEEDS_BUCKET_NAME% --location=%REGION%
 ```
 
-**2. Deploy `digest-worker` with an Eventarc trigger on that bucket:**
+**2. Let the Cloud Storage service agent notify Eventarc** (one-time per project — without it, step 4's deploy fails with "Failed to update storage bucket metadata"):
+```bat
+for /f %%i in ('gcloud storage service-agent --project=%PROJECT_ID%') do set GCS_AGENT=%%i
+gcloud projects add-iam-policy-binding %PROJECT_ID% ^
+  --member="serviceAccount:%GCS_AGENT%" ^
+  --role="roles/pubsub.publisher"
+```
+
+**3. Let the trigger's own service account receive Eventarc events** (must happen *before* the deploy below — the deploy itself fails with "Permission eventarc.events.receiveEvent denied" without it):
+```bat
+gcloud projects add-iam-policy-binding %PROJECT_ID% ^
+  --member="serviceAccount:%WORKER_SA_EMAIL%" ^
+  --role="roles/eventarc.eventReceiver"
+```
+
+**4. Deploy `digest-worker` with an Eventarc trigger on that bucket:**
 ```bat
 gcloud functions deploy digest-worker-storage ^
   --gen2 --runtime=python311 --region=%REGION% --source=digest_worker ^
@@ -45,19 +60,35 @@ gcloud functions deploy digest-worker-storage ^
   --set-env-vars=PROJECT_ID=%PROJECT_ID%,LOCATION=%LOCATION%,TELEGRAM_CHAT_ID=%TELEGRAM_CHAT_ID%,SECRET_NAME=%SECRET_NAME%
 ```
 
-**3. Upload a `feeds.txt` file** (one feed URL per line):
+**5. Let the trigger's push subscription invoke this function** (same underlying pattern as topic 1 — the push subscription authenticates as the function's own runtime SA):
 ```bat
-echo https://news.google.com/rss/search?q=artificial+intelligence > feeds.txt
+gcloud run services add-iam-policy-binding digest-worker-storage ^
+  --region=%REGION% ^
+  --member="serviceAccount:%WORKER_SA_EMAIL%" ^
+  --role="roles/run.invoker"
+```
+
+**6. Let the worker actually read files from the bucket** (separate from receiving the event notification — the worker's code calls `blob.download_as_text()`, which needs its own grant):
+```bat
+gcloud storage buckets add-iam-policy-binding gs://%FEEDS_BUCKET_NAME% ^
+  --member="serviceAccount:%WORKER_SA_EMAIL%" ^
+  --role="roles/storage.objectViewer"
+```
+
+**7. Upload a `feeds.txt` file** (one feed URL per line):
+```bat
+echo https://techcrunch.com/tag/artificial-intelligence/feed/ > feeds.txt
 gcloud storage cp feeds.txt gs://%FEEDS_BUCKET_NAME%/feeds.txt
 ```
 
-**4. Check your Telegram** — no `gcloud pubsub publish`, no direct call, just an upload.
+**8. Check your Telegram** — no `gcloud pubsub publish`, no direct call, just an upload.
 
 ## Common Pitfalls
 
 - Uploading to the wrong bucket — the trigger is scoped to one specific bucket name; a typo means silence, not an error.
 - Expecting *any* file event to fire it — this trigger is filtered to `object.finalized` specifically (a completed upload), not partial uploads or deletes.
 - Assuming Eventarc replaces Pub/Sub entirely — they overlap (Eventarc uses Pub/Sub as its transport for some event types) but solve different problems: "route this GCP event" vs. "let me publish an app-level message."
+- Skipping any of steps 2, 3, 5, or 6 — each is a real, separate IAM grant this exact setup needs: the GCS service agent needs to *publish* the event, the worker SA needs to *receive* it, the push subscription needs to *invoke* the function, and the worker SA separately needs to *read* the actual file. Missing any one produces a different, specific failure (a failed deploy, a silently-failing trigger, or a 403 reading the file) rather than one generic "it doesn't work."
 
 ## Quick Recap
 

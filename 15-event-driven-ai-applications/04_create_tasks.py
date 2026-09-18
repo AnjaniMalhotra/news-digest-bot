@@ -24,10 +24,14 @@ QUEUE_NAME = os.environ["QUEUE_NAME"]
 WORKER_HTTP_URL = os.environ["WORKER_HTTP_URL"]
 TASKS_SA_EMAIL = f"{os.environ['TASKS_SA_NAME']}@{PROJECT_ID}.iam.gserviceaccount.com"
 
+# NOT Google News /rss/search URLs - Google blocks that endpoint's traffic
+# from Google Cloud's own egress IPs with a 503 bot-detection page (found
+# and confirmed in Module 14 - digest-worker-http runs on Cloud Functions,
+# a GCP-hosted caller, so it hits the same block).
 FEEDS_TO_PROCESS = [
-    "https://news.google.com/rss/search?q=artificial+intelligence",
-    "https://news.google.com/rss/search?q=google+cloud",
-    "https://news.google.com/rss/search?q=climate+change",
+    "https://techcrunch.com/tag/artificial-intelligence/feed/",
+    "https://techcrunch.com/tag/google/feed/",
+    "https://techcrunch.com/tag/climate/feed/",
 ]
 
 

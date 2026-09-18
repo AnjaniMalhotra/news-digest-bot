@@ -6,7 +6,7 @@ echo == creating the scheduled job (daily at 8 AM IST) ==
 gcloud scheduler jobs create pubsub morning-digest-job ^
   --schedule="0 8 * * *" ^
   --topic=%TOPIC_NAME% ^
-  --message-body="{\"feed_url\": \"https://news.google.com/rss/search?q=artificial+intelligence\"}" ^
+  --message-body="{\"feed_url\": \"https://techcrunch.com/tag/artificial-intelligence/feed/\"}" ^
   --time-zone="Asia/Kolkata" ^
   --location=%REGION%
 
