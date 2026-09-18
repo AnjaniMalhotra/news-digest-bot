@@ -19,6 +19,6 @@
     }
   ],
   "notificationChannels": [
-    "NOTIFICATION_CHANNEL_ID_HERE"
+    "projects/gcp-fde-project/notificationChannels/14037811656753183705"
   ]
 }

@@ -9,9 +9,10 @@ echo   curl SERVICE_URL
 
 echo.
 echo == querying the custom metric directly ==
-gcloud monitoring time-series list ^
-  --filter="metric.type=\"custom.googleapis.com/digest/headlines_processed\"" ^
-  --format=json
+REM `gcloud monitoring time-series list` does not exist in current gcloud
+REM SDK versions - use the underlying REST API directly instead.
+for /f %%i in ('gcloud auth print-access-token') do set TOKEN=%%i
+curl -s -H "Authorization: Bearer %TOKEN%" "https://monitoring.googleapis.com/v3/projects/%PROJECT_ID%/timeSeries?filter=metric.type%%3D%%22custom.googleapis.com%%2Fdigest%%2Fheadlines_processed%%22&interval.startTime=2026-01-01T00:00:00Z&interval.endTime=2026-12-31T00:00:00Z"
 
 echo.
 echo Also viewable in Console -^> Monitoring -^> Metrics Explorer, searching

@@ -44,7 +44,7 @@ Confirmed against Google's current pricing: Cloud Logging (50 GiB/month free), C
 
 - Module 14 complete (Cloud Run, Secret Manager, IAM concepts are assumed, not re-taught)
 - A Telegram bot token and chat ID (reuse an existing one or make a fresh one)
-- `.env` filled in (see `code/16-monitoring-observability/.env.example`)
+- `.env` filled in (see `.env.example` at this module's root)
 
 ## What you'll be able to do after this module
 

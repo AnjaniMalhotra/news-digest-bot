@@ -1,5 +1,5 @@
 """digest-worker-observable — a Cloud Run service, rebuilt fresh for this
-module (no imports from code/14 or code/15, per the isolation rule).
+module (no imports from the Module 14 or 15 branches, per the isolation rule).
 
 Same job as before (fetch a feed, summarize with Gemini, send to
 Telegram) — but instrumented with structured logging, custom trace spans,
@@ -42,8 +42,11 @@ PROJECT_ID = os.environ["PROJECT_ID"]
 LOCATION = os.environ.get("LOCATION", "us-central1")
 TELEGRAM_CHAT_ID = os.environ["TELEGRAM_CHAT_ID"]
 SECRET_NAME = os.environ["SECRET_NAME"]
-MODEL_FLASH = "gemini-2.5-flash"  # verify still current/GA - see code/03-vertex-ai-gemini/docs/02-gemini-models.md
-DEFAULT_FEED_URL = "https://news.google.com/rss/search?q=artificial+intelligence"
+MODEL_FLASH = "gemini-2.5-flash"  # verify still current/GA against Vertex AI's model docs
+# NOT a Google News /rss/search URL - Google blocks that endpoint's traffic
+# from Google Cloud's own egress IPs with a 503 bot-detection page (found
+# and confirmed in Modules 14/15; same underlying GCP-hosted-caller issue).
+DEFAULT_FEED_URL = "https://techcrunch.com/tag/artificial-intelligence/feed/"
 
 genai_client = genai.Client(vertexai=True, project=PROJECT_ID, location=LOCATION)
 monitoring_client = monitoring_v3.MetricServiceClient()
@@ -63,9 +66,13 @@ def write_custom_metric(headline_count: int) -> None:
     series.resource.labels["project_id"] = PROJECT_ID
 
     now = time.time()
-    point = monitoring_v3.Point()
-    point.value.int64_value = headline_count
-    point.interval.end_time.seconds = int(now)
+    seconds = int(now)
+    nanos = int((now - seconds) * 10**9)
+    # The client library's well-known Timestamp field (end_time) isn't
+    # mutable in place like a plain submessage - it must be constructed
+    # and assigned as a whole, not field-by-field.
+    interval = monitoring_v3.TimeInterval({"end_time": {"seconds": seconds, "nanos": nanos}})
+    point = monitoring_v3.Point({"interval": interval, "value": {"int64_value": headline_count}})
     series.points = [point]
 
     monitoring_client.create_time_series(name=f"projects/{PROJECT_ID}", time_series=[series])

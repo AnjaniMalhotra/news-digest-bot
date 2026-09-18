@@ -29,11 +29,15 @@ flowchart LR
 
 ## Step-by-Step
 
-**1. Create a log-based metric counting the simulated error:**
+**1. Create a log-based metric counting the simulated error.** This app calls `cloud_logging.Client().setup_logging()`, which routes `logging.error(...)` through *structured* Cloud Logging — the "simulated failure triggered on purpose" message lands in `jsonPayload.message`, not `textPayload` (`textPayload` is only the unhandled exception's own stderr traceback, a separate log entry). A `textPayload` filter here matches zero real entries and the alert would silently never fire — no error anywhere to point at why. Verify the real field first:
+```bash
+gcloud logging read 'resource.type=cloud_run_revision AND jsonPayload.message:"simulated failure"' --format=json --limit=5
+```
+Then create the metric against the field that's actually there:
 ```bat
 gcloud logging metrics create digest_simulated_errors ^
   --description="Counts simulated digest-worker errors" ^
-  --log-filter="resource.type=cloud_run_revision AND textPayload:\"simulated failure triggered on purpose\""
+  --log-filter="resource.type=cloud_run_revision AND jsonPayload.message=\"simulated failure triggered on purpose\""
 ```
 
 **2. Create a notification channel (email):**
@@ -62,6 +66,7 @@ curl "%SERVICE_URL%/?simulate_error=true"
 - Expecting instant notification — alerting has real latency baked into how it works; design your expectations (and your on-call processes) around that.
 - Setting the threshold so low that everything alerts, or so high that real problems get missed — this demo deliberately uses a low threshold (1) purely to make the demo reliable, not as production guidance.
 - Forgetting to actually trigger the condition when testing — an alert policy that's never been proven to fire is not a policy you can trust.
+- Writing a log-based metric filter against `textPayload` for a message actually logged through Python's `logging` module with structured Cloud Logging enabled — check the real field (`jsonPayload.message` here) with `gcloud logging read` before building an alert on top of it, or it fires never, silently.
 
 ## Quick Recap
 

@@ -36,7 +36,7 @@ logging.info("digest run started", extra={"json_fields": {"feed_url": feed_url}}
 
 **2. Send a normal request:**
 ```bat
-curl "%SERVICE_URL%/?feed_url=https://news.google.com/rss/search?q=cloud+computing"
+curl "%SERVICE_URL%/?feed_url=https://techcrunch.com/tag/cloud-computing/feed/"
 ```
 
 **3. View the logs:**

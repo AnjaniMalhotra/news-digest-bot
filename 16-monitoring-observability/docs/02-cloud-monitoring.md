@@ -40,9 +40,11 @@ curl %SERVICE_URL%
 
 **2. Open Metrics Explorer:** Console → **Monitoring → Metrics Explorer** → select resource type `Cloud Run Revision`, metric `Request Count` (or `Request Latencies`).
 
-**3. From the CLI, list what's available:**
-```bat
-gcloud monitoring metrics-descriptors list --filter="metric.type:run.googleapis.com" --limit=10
+**3. From the CLI, list what's available.** `gcloud monitoring metrics-descriptors list` does not exist in current gcloud SDK versions (confirmed — no such subcommand anywhere under `gcloud monitoring`, `gcloud alpha monitoring`, or `gcloud beta monitoring`). Call the underlying Monitoring REST API directly instead — the CLI is just a thin wrapper around this same API:
+```bash
+TOKEN=$(gcloud auth print-access-token)
+curl -s -H "Authorization: Bearer $TOKEN" \
+  "https://monitoring.googleapis.com/v3/projects/%PROJECT_ID%/metricDescriptors?filter=metric.type%3Dstarts_with(%22run.googleapis.com%22)&pageSize=10"
 ```
 
 ## Common Pitfalls
@@ -50,6 +52,7 @@ gcloud monitoring metrics-descriptors list --filter="metric.type:run.googleapis.
 - Assuming you need to set anything up for these — built-in metrics for supported resources (Cloud Run, Cloud Functions, etc.) are automatic.
 - Confusing this topic with topic 5 — this is what GCP gives you; topic 5 is what you define yourself.
 - Looking for data before any traffic has happened — an idle service with zero requests has nothing to graph yet.
+- Reaching for `gcloud monitoring metrics-descriptors list` — it doesn't exist in current gcloud versions; use the REST API directly (step 3) or just browse Metrics Explorer in the Console instead.
 
 ## Quick Recap
 

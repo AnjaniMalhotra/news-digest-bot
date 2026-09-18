@@ -22,6 +22,13 @@ gcloud projects add-iam-policy-binding %PROJECT_ID% ^
   --member="serviceAccount:%WORKER_SA_EMAIL%" ^
   --role="roles/monitoring.metricWriter"
 
+echo == granting it baseline Vertex AI access (needed just to call Gemini) ==
+echo (Modules 14/15 found this is required and missing from the original
+echo  script - applying the fix upfront here instead of rediscovering it)
+gcloud projects add-iam-policy-binding %PROJECT_ID% ^
+  --member="serviceAccount:%WORKER_SA_EMAIL%" ^
+  --role="roles/aiplatform.user"
+
 echo == creating the Telegram bot token secret ==
 gcloud secrets create %SECRET_NAME% --replication-policy=automatic
 echo %TELEGRAM_BOT_TOKEN% | gcloud secrets versions add %SECRET_NAME% --data-file=-

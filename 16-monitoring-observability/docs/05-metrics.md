@@ -34,18 +34,26 @@ series = monitoring_v3.TimeSeries()
 series.metric.type = "custom.googleapis.com/digest/headlines_processed"
 series.resource.type = "global"
 # ...
+# The well-known Timestamp field (end_time) must be constructed and
+# assigned as a whole - it isn't mutable field-by-field like a plain
+# submessage (`point.interval.end_time.seconds = ...` raises
+# AttributeError: 'NoneType' object has no attribute 'seconds').
+interval = monitoring_v3.TimeInterval({"end_time": {"seconds": seconds, "nanos": nanos}})
+point = monitoring_v3.Point({"interval": interval, "value": {"int64_value": headline_count}})
 monitoring_client.create_time_series(name=f"projects/{PROJECT_ID}", time_series=[series])
 ```
 
 **2. Send a few normal requests** to generate data points:
 ```bat
 curl %SERVICE_URL%
-curl "%SERVICE_URL%/?feed_url=https://news.google.com/rss/search?q=cloud+computing"
+curl "%SERVICE_URL%/?feed_url=https://techcrunch.com/tag/cloud-computing/feed/"
 ```
 
-**3. View it:** Console → **Monitoring → Metrics Explorer** → search for `headlines_processed`. Or from the CLI:
-```bat
-gcloud monitoring time-series list --filter="metric.type=\"custom.googleapis.com/digest/headlines_processed\"" --format=json
+**3. View it:** Console → **Monitoring → Metrics Explorer** → search for `headlines_processed`. Or from the CLI — `gcloud monitoring time-series list` does not exist in current gcloud SDK versions (same issue as topic 2's `metrics-descriptors list`); use the REST API directly:
+```bash
+TOKEN=$(gcloud auth print-access-token)
+curl -s -H "Authorization: Bearer $TOKEN" \
+  "https://monitoring.googleapis.com/v3/projects/%PROJECT_ID%/timeSeries?filter=metric.type%3D%22custom.googleapis.com%2Fdigest%2Fheadlines_processed%22&interval.startTime=<start>&interval.endTime=<end>"
 ```
 
 ## Common Pitfalls
@@ -53,6 +61,8 @@ gcloud monitoring time-series list --filter="metric.type=\"custom.googleapis.com
 - Forgetting the `custom.googleapis.com/` prefix — required for all user-defined metrics, and it's why this metric doesn't show up in topic 2's built-in list.
 - Writing a metric point on every request, even failed ones — decide deliberately what a metric should represent (this module only writes on a *successful* run).
 - Treating a custom metric as a replacement for logging — they answer different questions: logs explain *what happened in one request*, metrics show *trends over many*.
+- Mutating `point.interval.end_time.seconds` directly — the client library's well-known `Timestamp` field must be constructed and assigned as a whole (`monitoring_v3.TimeInterval({"end_time": {"seconds": ..., "nanos": ...}})`), not set field-by-field. This crashes on every successful run, not just when checking metrics, since the write happens unconditionally after a successful send.
+- Reaching for `gcloud monitoring time-series list` — it doesn't exist in current gcloud versions; use the REST API directly (step 3) or Metrics Explorer in the Console.
 
 ## Quick Recap
 
