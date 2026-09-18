@@ -1,5 +1,5 @@
 """digest-worker-observable — a Cloud Run service, rebuilt fresh for this
-module (no imports from the Module 14 or 15 branches, per the isolation rule).
+module (no imports from the Module 14 or 15 code, per the isolation rule).
 
 Same job as before (fetch a feed, summarize with Gemini, send to
 Telegram) — but instrumented with structured logging, custom trace spans,

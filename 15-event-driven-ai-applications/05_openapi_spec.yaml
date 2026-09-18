@@ -1,0 +1,33 @@
+# Topic 5 - API Gateway config.
+# Before deploying: replace WORKER_HTTP_URL_HERE with the real URL of
+# digest-worker-http (printed by 04_cloud_tasks_setup.bat), including
+# the https:// prefix, no trailing slash.
+
+swagger: '2.0'
+info:
+  title: digest-api
+  description: Public, API-key-protected front door for digest-worker
+  version: 1.0.0
+schemes:
+  - https
+produces:
+  - application/json
+paths:
+  /trigger-digest:
+    get:
+      summary: Trigger a news digest run
+      operationId: triggerDigest
+      x-google-backend:
+        address: https://digest-worker-http-mewtpyvzkq-uc.a.run.app
+      security:
+        - api_key: []
+      responses:
+        '200':
+          description: A successful response
+          schema:
+            type: object
+securityDefinitions:
+  api_key:
+    type: "apiKey"
+    name: "key"
+    in: "query"

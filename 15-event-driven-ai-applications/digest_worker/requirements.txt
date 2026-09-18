@@ -1,0 +1,6 @@
+functions-framework
+feedparser
+requests
+google-genai
+google-cloud-secret-manager
+google-cloud-storage

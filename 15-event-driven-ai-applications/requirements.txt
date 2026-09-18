@@ -1,0 +1,6 @@
+# Two things need Python packages in this module:
+#   digest_worker/requirements.txt  -> installed inside the Cloud Function deploy
+#   04_create_tasks.py              -> run from your host machine, needs these:
+
+python-dotenv
+google-cloud-tasks
