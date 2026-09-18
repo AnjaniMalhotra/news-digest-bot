@@ -7,7 +7,7 @@
 
 Module 14 built the **Daily News Digest Bot** and deliberately left one thing unfinished: *"Cloud Scheduler and event-driven triggers are Module 15's actual subject — wiring that up here would be teaching ahead of that module."* This is that module.
 
-The code here is **rebuilt fresh** (no imports from the Module 14 branch, per the course's isolation rule) as one small worker — **`digest-worker`** — that fetches a news feed, summarizes it with Gemini, and sends it to Telegram. Same job as Module 14's `news-summarizer`, simplified into a single Cloud Function since this module's actual focus is *what triggers it*, not re-teaching Docker/Cloud Run.
+The code here is **rebuilt fresh** (no imports from the Module 14 code, per the course's isolation rule) as one small worker — **`digest-worker`** — that fetches a news feed, summarizes it with Gemini, and sends it to Telegram. Same job as Module 14's `news-summarizer`, simplified into a single Cloud Function since this module's actual focus is *what triggers it*, not re-teaching Docker/Cloud Run.
 
 ```mermaid
 flowchart TD
