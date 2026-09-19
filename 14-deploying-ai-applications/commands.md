@@ -301,7 +301,7 @@ curl -s -o /dev/null -w "status=%{http_code}\n" -A "Mozilla/5.0" "https://techcr
 ```
 
 Updated `RSS_FEED_URL`'s default in `news_fetcher/main.py`, `.env`, and
-`.env.example` (kept in sync per the playbook) to
+`.env.example` (kept in sync) to
 `https://techcrunch.com/tag/artificial-intelligence/feed/`. Kept the
 browser `User-Agent` header on the `feedparser.parse()` call as a general
 defensive default for other feeds, even though it wasn't the fix for this
@@ -336,7 +336,7 @@ gcloud secrets create telegram-bot-token --replication-policy=automatic --projec
 # Created secret [telegram-bot-token].
 
 # Sourced from .env into a shell variable, never typed literally in the
-# command itself, per the playbook's live-secret rule:
+# command itself, since the token is a live secret:
 set -a && source .env && set +a
 printf '%s' "$TELEGRAM_BOT_TOKEN" | gcloud secrets versions add telegram-bot-token --data-file=- --project=gcp-fde-project
 # Created version [1] of the secret [telegram-bot-token].
