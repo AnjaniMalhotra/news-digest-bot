@@ -445,4 +445,80 @@ granting `run.invoker` to the backend-auth SA) are now steps 4 and 5 of
 
 ## Final cleanup
 
-_Pending — run when the module is fully demoed and verified._
+Torn down on 2026-09-19, after Module 16 was also finished, using the real
+commands below. Every resource this module created was deleted and then
+confirmed gone with `list` commands (functions, Pub/Sub topics and
+subscriptions, Eventarc triggers, buckets, Scheduler, Tasks, API Gateway,
+API keys, secrets, service accounts, project IAM policy) — nothing of this
+module's was left.
+
+API Gateway has to come down in order — gateway, then config, then API —
+and each step waits on the last (the gateway took several minutes, the
+config seconds, the API about a minute). Run it in the background while
+doing the rest:
+
+```bash
+gcloud api-gateway gateways delete digest-gateway --location=us-central1 --project=gcp-fde-project --quiet
+gcloud api-gateway api-configs delete digest-config --api=digest-api --project=gcp-fde-project --quiet
+gcloud api-gateway apis delete digest-api --project=gcp-fde-project --quiet
+```
+
+The API's auto-created managed service
+(`digest-api-1gh4ofxsrvtp7.apigateway.gcp-fde-project.cloud.goog`, which
+topic 5 had to enable by hand) disappeared on its own when the API was
+deleted — no `gcloud services disable` needed; confirmed by listing enabled
+services afterwards.
+
+```bash
+# the API key needs its full resource name, not its display name
+gcloud services api-keys delete projects/1039893753206/locations/global/keys/65488106-661d-4437-8761-151e4907bd67 --project=gcp-fde-project --quiet
+
+gcloud scheduler jobs delete morning-digest-job --location=us-central1 --project=gcp-fde-project --quiet
+gcloud tasks queues delete digest-fetch-queue --location=us-central1 --project=gcp-fde-project --quiet
+
+gcloud functions delete digest-worker-pubsub --gen2 --region=us-central1 --project=gcp-fde-project --quiet
+gcloud functions delete digest-worker-storage --gen2 --region=us-central1 --project=gcp-fde-project --quiet
+gcloud functions delete digest-worker-http --gen2 --region=us-central1 --project=gcp-fde-project --quiet
+
+gcloud pubsub topics delete digest-requests --project=gcp-fde-project --quiet
+gcloud storage rm -r gs://digest-feeds-bucket-gcp-fde-project --project=gcp-fde-project
+gcloud secrets delete telegram-bot-token-eventdriven --project=gcp-fde-project --quiet
+```
+
+Deleting the three functions also removed their Eventarc triggers **and**
+the helper Pub/Sub topic and subscriptions Eventarc had created for them
+(`eventarc-us-central1-digest-worker-...`) — listed Pub/Sub and Eventarc
+right afterwards to confirm nothing was left over, so no manual cleanup of
+those was needed. The `run.invoker` grants lived on the functions'
+Cloud Run services and the Cloud Tasks `serviceAccountTokenCreator` grant
+lived on `digest-tasks-sa` itself, so both went away with those resources.
+
+The project-level grants were removed **before** deleting the service
+accounts, so no orphaned `deleted:serviceAccount:...` entries are left in the
+project's IAM policy. Listed the policy first to confirm these eight (across
+Modules 14-16) were exactly the ones we added and nothing else:
+
+```bash
+gcloud projects remove-iam-policy-binding gcp-fde-project \
+  --member="serviceAccount:digest-worker-sa@gcp-fde-project.iam.gserviceaccount.com" \
+  --role="roles/aiplatform.user" --condition=None --quiet
+gcloud projects remove-iam-policy-binding gcp-fde-project \
+  --member="serviceAccount:digest-worker-sa@gcp-fde-project.iam.gserviceaccount.com" \
+  --role="roles/eventarc.eventReceiver" --condition=None --quiet
+# granted to Cloud Storage's own helper account in topic 2:
+gcloud projects remove-iam-policy-binding gcp-fde-project \
+  --member="serviceAccount:service-1039893753206@gs-project-accounts.iam.gserviceaccount.com" \
+  --role="roles/pubsub.publisher" --condition=None --quiet
+
+gcloud iam service-accounts delete digest-worker-sa@gcp-fde-project.iam.gserviceaccount.com --project=gcp-fde-project --quiet
+gcloud iam service-accounts delete digest-tasks-sa@gcp-fde-project.iam.gserviceaccount.com --project=gcp-fde-project --quiet
+```
+
+The `gcf-*` helper repo and buckets that Cloud Functions builds create are
+shared with Module 14's function, and were deleted along with it — see
+Module 14's cleanup section.
+
+**Gaps in the original `bat-files/99_cleanup.bat`** (left unchanged there):
+it never deletes the API key that `05_api_gateway_setup.bat` creates, so a
+live key would have been left behind, and it doesn't remove any of the
+project-level grants above.

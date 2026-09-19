@@ -473,4 +473,56 @@ future run of this module won't rediscover either from scratch.
 
 ## Final cleanup
 
-_Pending — run when the module is fully demoed and verified._
+Torn down on 2026-09-19, after Modules 15 and 16 were also finished, using
+the real commands below. Every resource this module created was deleted and
+then confirmed gone with `list` commands (Cloud Run, Cloud Functions,
+Artifact Registry, Secret Manager, service accounts, project IAM policy) —
+nothing of this module's was left.
+
+```bash
+gcloud run services delete news-summarizer --region=us-central1 --project=gcp-fde-project --quiet
+gcloud functions delete news-fetcher --gen2 --region=us-central1 --project=gcp-fde-project --quiet
+gcloud artifacts repositories delete deploying-ai-apps --location=us-central1 --project=gcp-fde-project --quiet
+gcloud secrets delete telegram-bot-token --project=gcp-fde-project --quiet
+```
+
+The project-level `aiplatform.user` grant (added in topic 3) was removed
+**before** deleting its service account, so no orphaned
+`deleted:serviceAccount:...` entry is left behind in the project's IAM
+policy:
+
+```bash
+gcloud projects remove-iam-policy-binding gcp-fde-project \
+  --member="serviceAccount:news-summarizer-sa@gcp-fde-project.iam.gserviceaccount.com" \
+  --role="roles/aiplatform.user" --condition=None --quiet
+
+gcloud iam service-accounts delete news-summarizer-sa@gcp-fde-project.iam.gserviceaccount.com --project=gcp-fde-project --quiet
+gcloud iam service-accounts delete news-fetcher-sa@gcp-fde-project.iam.gserviceaccount.com --project=gcp-fde-project --quiet
+```
+
+The `secretAccessor` and `run.invoker` grants lived on the secret and the
+Cloud Run service themselves, so they went away with those resources — no
+separate step.
+
+**Helper storage that Cloud Functions builds created automatically.** These
+are shared with Module 15's functions, so they were deleted only once all
+four functions (this module's plus Module 15's three) were gone. Before
+deleting, checked their creation dates (2026-09-17, during this work) and
+contents (only these functions' source and image files) to be sure they
+weren't left over from earlier course modules:
+
+```bash
+gcloud artifacts repositories delete gcf-artifacts --location=us-central1 --project=gcp-fde-project --quiet
+gcloud storage rm -r gs://gcf-v2-sources-1039893753206-us-central1 --project=gcp-fde-project
+gcloud storage rm -r "gs://gcf-v2-uploads-1039893753206.us-central1.cloudfunctions.appspot.com" --project=gcp-fde-project
+```
+
+**Gaps in the original `bat-files/99_cleanup.bat`** (left unchanged there):
+it never removes the `aiplatform.user` grant (the original script never made
+it), and it doesn't know about the `gcf-*` helper repo/buckets above.
+
+**Deliberately left alone:** the `gcp-fde-project_cloudbuild` bucket (created
+2026-09-12, before this work — it belongs to earlier modules), the default
+App Engine and Compute service accounts, and the older modules' IAM
+entries. The Telegram bot itself still exists on Telegram; only its stored
+copies in Secret Manager were deleted.

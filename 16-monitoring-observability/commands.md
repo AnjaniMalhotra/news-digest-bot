@@ -384,4 +384,68 @@ Console: **Monitoring → Dashboards → "Digest Worker Health"**.
 
 ## Final cleanup
 
-_Pending — run when the module is fully demoed and verified._
+Torn down on 2026-09-19, the last of the three modules to go, using the real
+commands below. Every resource this module created was deleted and then
+confirmed gone with `list` commands (Cloud Run, Artifact Registry, buckets,
+secrets, service accounts, log-based metrics, alert policies, channels,
+dashboards, project IAM policy), plus a `GET` on the custom metric that
+came back `404`. Nothing of this module's was left.
+
+Order matters here: the alert policy uses the email channel, so the policy
+goes before the channel.
+
+```bash
+gcloud alpha monitoring policies delete projects/gcp-fde-project/alertPolicies/11398678677717922077 --project=gcp-fde-project --quiet
+gcloud alpha monitoring channels delete projects/gcp-fde-project/notificationChannels/14037811656753183705 --project=gcp-fde-project --quiet
+gcloud monitoring dashboards delete projects/1039893753206/dashboards/e273cfa4-6df2-4f7c-a760-c108478e04c0 --project=gcp-fde-project --quiet
+gcloud logging metrics delete digest_simulated_errors --project=gcp-fde-project --quiet
+```
+
+The custom metric's *definition* (`headlines_processed`, created
+automatically the first time the app wrote a point to it) needs the REST
+API to delete — there's no `gcloud` command for it, the same gap as topics 2
+and 5. Returned `200`, and a later `GET` returned `404`:
+
+```bash
+TOKEN=$(gcloud auth print-access-token)
+curl -X DELETE -H "Authorization: Bearer $TOKEN" \
+  "https://monitoring.googleapis.com/v3/projects/gcp-fde-project/metricDescriptors/custom.googleapis.com/digest/headlines_processed"
+```
+
+```bash
+gcloud run services delete digest-worker-observable --region=us-central1 --project=gcp-fde-project --quiet
+
+# both auto-created by the source-based `gcloud run deploy` in topic 1 -
+# checked first: created 2026-09-18 during this work, and holding only this
+# service's source/image
+gcloud storage rm -r gs://run-sources-gcp-fde-project-us-central1 --project=gcp-fde-project
+gcloud artifacts repositories delete cloud-run-source-deploy --location=us-central1 --project=gcp-fde-project --quiet
+
+gcloud secrets delete telegram-bot-token-observability --project=gcp-fde-project --quiet
+```
+
+The four project-level grants from topic 0a were removed **before**
+deleting the service account, so no orphaned `deleted:serviceAccount:...`
+entry is left in the project's IAM policy:
+
+```bash
+for role in aiplatform.user cloudtrace.agent logging.logWriter monitoring.metricWriter; do
+  gcloud projects remove-iam-policy-binding gcp-fde-project \
+    --member="serviceAccount:digest-observable-sa@gcp-fde-project.iam.gserviceaccount.com" \
+    --role="roles/$role" --condition=None --quiet
+done
+
+gcloud iam service-accounts delete digest-observable-sa@gcp-fde-project.iam.gserviceaccount.com --project=gcp-fde-project --quiet
+```
+
+Nothing to delete for Error Reporting groups or Cloud Trace data — they're
+just stored data with no resource to remove. The APIs switched on during
+Modules 14-16 (`cloudfunctions`, `eventarc`, `cloudscheduler`, `cloudtasks`,
+`apigateway`, `servicecontrol`, `clouderrorreporting`) were left enabled;
+switching an API on costs nothing and turning them off isn't needed.
+
+**Gaps in the original `bat-files/99_cleanup.bat`** (left unchanged there):
+it only prints the dashboard, policy and channel deletions as commented-out
+placeholders with `DASHBOARD_ID` / `POLICY_ID` / `CHANNEL_ID` to fill in by
+hand, and it doesn't touch the custom metric definition, the source-deploy
+bucket and repo, or the four project-level grants.
